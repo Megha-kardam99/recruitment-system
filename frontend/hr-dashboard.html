@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HR Dashboard – HireHub</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .tab-btn {
+      padding: 0.625rem 1.25rem; border: none; background: none;
+      font-weight: 600; font-size: 0.875rem; color: var(--gray-500);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: var(--transition); white-space: nowrap;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-bar { display: flex; border-bottom: 1px solid var(--gray-200); margin-bottom: 1.75rem; overflow-x: auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .job-mgmt-card {
+      background: white; border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem; display: grid;
+      grid-template-columns: 1fr auto; gap: 1rem;
+      transition: var(--transition);
+    }
+    .job-mgmt-card:hover { box-shadow: var(--shadow-md); border-color: var(--gray-300); }
+    .applicant-card {
+      background: white; border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;
+      margin-bottom: 0.875rem; transition: var(--transition);
+    }
+    .applicant-card:hover { box-shadow: var(--shadow-md); }
+    .applicant-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 0.875rem; }
+    .applicant-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--primary-bg); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1rem; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+<script src="js/main.js"></script>
+<script>
+  if (!requireAuth('hr')) { /* redirect handled */ }
+  injectNavbar('dashboard');
+</script>
+
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="nav-user" style="padding:0.5rem 1rem 1.5rem;border-bottom:1px solid var(--gray-200);margin-bottom:1rem;">
+      <div id="sidebarAvatar" class="nav-avatar" style="width:48px;height:48px;font-size:1rem;background:var(--accent);color:white;">?</div>
+      <div>
+        <div id="sidebarName" style="font-weight:700;font-size:0.95rem;">Loading...</div>
+        <div id="sidebarCompany" class="text-xs text-muted">HR / Employer</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="sidebar-section-title">Recruitment</span>
+      <a href="#" class="sidebar-link active" onclick="showTab('overview', this)">
+        <span class="icon">📊</span> Overview
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('post-job', this)">
+        <span class="icon">➕</span> Post a Job
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('my-jobs', this)">
+        <span class="icon">📋</span> My Job Listings
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('applicants', this)">
+        <span class="icon">👥</span> All Applicants
+      </a>
+
+      <span class="sidebar-section-title">Account</span>
+      <a href="#" class="sidebar-link" onclick="showTab('hr-profile', this)">
+        <span class="icon">🏢</span> Company Profile
+      </a>
+      <a href="jobs.html" class="sidebar-link">
+        <span class="icon">🔍</span> View Job Board
+      </a>
+      <a href="#" class="sidebar-link" onclick="logout()" style="color:var(--danger);">
+        <span class="icon">🚪</span> Logout
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-content">
+
+    <!-- Overview Tab -->
+    <div class="tab-content active" id="tab-overview">
+      <h2 style="margin-bottom:0.5rem;">HR Dashboard 🏢</h2>
+      <p class="text-muted mb-3">Manage your job listings and candidate pipeline.</p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#eff6ff;">📋</div>
+          <div>
+            <div class="stat-card-value" id="st-totalJobs">—</div>
+            <div class="stat-card-label">Total Jobs Posted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#dcfce7;">✅</div>
+          <div>
+            <div class="stat-card-value" id="st-activeJobs">—</div>
+            <div class="stat-card-label">Active Jobs</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#fef9c3;">📝</div>
+          <div>
+            <div class="stat-card-value" id="st-totalApps">—</div>
+            <div class="stat-card-label">Total Applications</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#ede9fe;">⏳</div>
+          <div>
+            <div class="stat-card-value" id="st-pending">—</div>
+            <div class="stat-card-label">Pending Review</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#dcfce7;">🎯</div>
+          <div>
+            <div class="stat-card-value" id="st-shortlisted">—</div>
+            <div class="stat-card-label">Shortlisted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#ccfbf1;">🎉</div>
+          <div>
+            <div class="stat-card-value" id="st-offered">—</div>
+            <div class="stat-card-label">Offers Extended</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-3 mb-3" style="flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="showTab('post-job')">
+          ➕ Post a New Job
+        </button>
+        <button class="btn btn-outline" onclick="showTab('my-jobs')">
+          📋 View My Jobs
+        </button>
+        <button class="btn btn-secondary" onclick="showTab('applicants')">
+          👥 View Applicants
+        </button>
+      </div>
+
+      <!-- Quick Jobs Preview -->
+      <h4 style="margin-bottom:1rem;">Recent Job Postings</h4>
+      <div id="overviewJobs">
+        <div class="card" style="text-align:center;padding:2rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post Job Tab -->
+    <div class="tab-content" id="tab-post-job">
+      <h2 style="margin-bottom:0.5rem;">Post a New Job</h2>
+      <p class="text-muted mb-3">Fill in the details to attract the right candidates.</p>
+
+      <div id="postJobAlert"></div>
+
+      <div class="card mb-3">
+        <h4 style="margin-bottom:1.25rem;">Basic Information</h4>
+        <div class="grid-2" style="gap:1.25rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Job Title *</label>
+            <input type="text" id="jTitle" class="form-control" placeholder="e.g. Senior React Developer" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Company Name *</label>
+            <input type="text" id="jCompany" class="form-control" placeholder="Your company name" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Location *</label>
+            <input type="text" id="jLocation" class="form-control" placeholder="e.g. Bangalore / Remote" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Job Type *</label>
+            <select id="jType" class="form-control">
+              <option value="full-time">Full Time</option>
+              <option value="part-time">Part Time</option>
+              <option value="contract">Contract</option>
+              <option value="internship">Internship</option>
+              <option value="remote">Remote</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Category</label>
+            <select id="jCategory" class="form-control">
+              <option value="technology">Technology</option>
+              <option value="marketing">Marketing</option>
+              <option value="finance">Finance</option>
+              <option value="design">Design</option>
+              <option value="hr">HR & Recruiting</option>
+              <option value="operations">Operations</option>
+              <option value="sales">Sales</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Number of Openings</label>
+            <input type="number" id="jOpenings" class="form-control" value="1" min="1" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <h4 style="margin-bottom:1.25rem;">Compensation & Experience</h4>
+        <div class="grid-2" style="gap:1.25rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Min Experience (years)</label>
+            <input type="number" id="jExpMin" class="form-control" placeholder="0" min="0" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Max Experience (years)</label>
+            <input type="number" id="jExpMax" class="form-control" placeholder="5" min="0" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Min Salary (₹/year)</label>
+            <input type="number" id="jSalMin" class="form-control" placeholder="e.g. 500000" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Max Salary (₹/year)</label>
+            <input type="number" id="jSalMax" class="form-control" placeholder="e.g. 1000000" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Education Required</label>
+            <input type="text" id="jEducation" class="form-control" placeholder="e.g. B.Tech / Any Graduate" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Application Deadline</label>
+            <input type="date" id="jDeadline" class="form-control" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <h4 style="margin-bottom:1.25rem;">Job Details</h4>
+        <div class="form-group">
+          <label class="form-label">Job Description *</label>
+          <textarea id="jDescription" class="form-control" rows="6"
+            placeholder="Describe the role, team, company culture, and what the candidate will do..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Required Skills *</label>
+          <div class="skills-container" id="jSkillsContainer"></div>
+          <input type="text" id="jSkillInput" class="form-control mt-1"
+            placeholder="Type skill and press Enter (e.g. React, Node.js, Python...)" />
+          <div class="form-hint">These skills are used to match candidates and rank applicants</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Key Responsibilities</label>
+          <textarea id="jResponsibilities" class="form-control" rows="4"
+            placeholder="• Design and develop scalable web applications&#10;• Collaborate with cross-functional teams&#10;• Write clean, maintainable code (one per line)"></textarea>
+          <div class="form-hint">Enter one responsibility per line</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Benefits & Perks</label>
+          <textarea id="jBenefits" class="form-control" rows="3"
+            placeholder="Health Insurance&#10;Work from Home&#10;Flexible Hours (one per line)"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button class="btn btn-primary btn-lg" onclick="postJob('active')">🚀 Publish Job</button>
+        <button class="btn btn-secondary btn-lg" onclick="postJob('draft')">💾 Save as Draft</button>
+      </div>
+    </div>
+
+    <!-- My Jobs Tab -->
+    <div class="tab-content" id="tab-my-jobs">
+      <div class="flex justify-between items-center mb-3">
+        <h2>My Job Listings</h2>
+        <button class="btn btn-primary btn-sm" onclick="showTab('post-job')">➕ Post New Job</button>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterMyJobs('all', this)">All</button>
+        <button class="tab-btn" onclick="filterMyJobs('active', this)">Active</button>
+        <button class="tab-btn" onclick="filterMyJobs('closed', this)">Closed</button>
+        <button class="tab-btn" onclick="filterMyJobs('draft', this)">Drafts</button>
+      </div>
+      <div id="myJobsList">
+        <div class="card" style="text-align:center;padding:2rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Applicants Tab -->
+    <div class="tab-content" id="tab-applicants">
+      <h2 style="margin-bottom:1rem;">All Applicants</h2>
+      <div class="flex gap-2 mb-3" style="flex-wrap:wrap;">
+        <select id="filterJobSelect" class="form-control" style="max-width:280px;" onchange="loadApplicants()">
+          <option value="">All Jobs</option>
+        </select>
+        <input type="text" id="filterSkill" placeholder="Filter by skill..." class="form-control" style="max-width:200px;" />
+        <select id="filterStatus" class="form-control" style="max-width:180px;" onchange="loadApplicants()">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="reviewing">Reviewing</option>
+          <option value="shortlisted">Shortlisted</option>
+          <option value="interviewed">Interviewed</option>
+          <option value="offered">Offered</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadApplicants()">🔍 Filter</button>
+      </div>
+      <div id="applicantsList">
+        <div class="card" style="text-align:center;padding:2rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HR Profile Tab -->
+    <div class="tab-content" id="tab-hr-profile">
+      <div class="flex justify-between items-center mb-3">
+        <h2>Company Profile</h2>
+        <button class="btn btn-primary" onclick="saveHRProfile()">Save Changes</button>
+      </div>
+      <div id="hrProfileAlert"></div>
+      <div class="card">
+        <div class="grid-2" style="gap:1.25rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Your Name</label>
+            <input type="text" id="hrName" class="form-control" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Company Name</label>
+            <input type="text" id="hrCompanyName" class="form-control" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Company Website</label>
+            <input type="url" id="hrCompanyWebsite" class="form-control" placeholder="https://" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Phone</label>
+            <input type="text" id="hrPhone" class="form-control" />
+          </div>
+        </div>
+        <div class="form-group mt-3">
+          <label class="form-label">Company Description</label>
+          <textarea id="hrCompanyDesc" class="form-control" rows="4"
+            placeholder="Tell candidates about your company culture, mission, and values..."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Update Application Status</h3>
+      <button class="modal-close" onclick="closeStatusModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="statusModalApplicant" class="mb-2" style="color:var(--gray-600);font-size:0.9rem;"></div>
+      <div class="form-group">
+        <label class="form-label">New Status</label>
+        <select id="newStatus" class="form-control">
+          <option value="pending">Pending</option>
+          <option value="reviewing">Reviewing</option>
+          <option value="shortlisted">Shortlisted</option>
+          <option value="interviewed">Interviewed</option>
+          <option value="offered">Offered</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">HR Notes (Internal)</label>
+        <textarea id="hrNotes" class="form-control" rows="3"
+          placeholder="Internal notes about this candidate..."></textarea>
+      </div>
+      <button class="btn btn-primary w-full" onclick="submitStatusUpdate()">Update Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Job Modal -->
+<div class="modal-overlay" id="editJobModal">
+  <div class="modal" style="max-width:660px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Job</h3>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="editJobAlert"></div>
+      <input type="hidden" id="editJobId" />
+      <div class="grid-2" style="gap:1rem;margin-bottom:1rem;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Job Title</label>
+          <input type="text" id="editTitle" class="form-control" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Location</label>
+          <input type="text" id="editLocation" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="editDescription" class="form-control" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="editStatus" class="form-control">
+          <option value="active">Active</option>
+          <option value="closed">Closed</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+      <button class="btn btn-primary w-full" onclick="submitEditJob()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let myJobs = [];
+let selectedAppId = null;
+let jSkillsManager;
+
+async function init() {
+  try {
+    const data = await API.get('/auth/me');
+    const user = data.user;
+    document.getElementById('sidebarAvatar').textContent = getInitials(user.name);
+    document.getElementById('sidebarName').textContent = user.name;
+    document.getElementById('sidebarCompany').textContent = user.company?.name || 'HR / Employer';
+    // Fill HR profile
+    document.getElementById('hrName').value = user.name || '';
+    document.getElementById('hrPhone').value = user.phone || '';
+    document.getElementById('hrCompanyName').value = user.company?.name || '';
+    document.getElementById('hrCompanyWebsite').value = user.company?.website || '';
+    document.getElementById('hrCompanyDesc').value = user.company?.description || '';
+    // Pre-fill company in post job
+    document.getElementById('jCompany').value = user.company?.name || '';
+
+    await loadStats();
+    await loadMyJobs();
+    populateJobFilter();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function loadStats() {
+  try {
+    const data = await API.get('/applications/hr/stats');
+    const s = data.stats;
+    document.getElementById('st-totalJobs').textContent = s.totalJobs;
+    document.getElementById('st-activeJobs').textContent = s.activeJobs;
+    document.getElementById('st-totalApps').textContent = s.totalApplications;
+    document.getElementById('st-pending').textContent = s.pending;
+    document.getElementById('st-shortlisted').textContent = s.shortlisted;
+    document.getElementById('st-offered').textContent = s.offered;
+  } catch (err) { console.error(err); }
+}
+
+async function loadMyJobs() {
+  try {
+    const data = await API.get('/jobs/hr/myjobs');
+    myJobs = data.jobs || [];
+    renderMyJobs(myJobs, 'overviewJobs', 3);
+    renderMyJobs(myJobs, 'myJobsList');
+  } catch (err) {
+    document.getElementById('myJobsList').innerHTML =
+      `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+function renderMyJobs(jobs, containerId, limit = null) {
+  const container = document.getElementById(containerId);
+  const toShow = limit ? jobs.slice(0, limit) : jobs;
+
+  if (!toShow || toShow.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📋</div>
+      <h3>No jobs posted yet</h3>
+      <p>Post your first job to start receiving applications</p>
+      <button class="btn btn-primary mt-2" onclick="showTab('post-job')">Post a Job</button>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = toShow.map(job => `
+    <div class="job-mgmt-card">
+      <div>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.35rem;">
+          <span style="font-weight:700;font-size:1rem;">${job.title}</span>
+          <span class="badge ${job.status === 'active' ? 'status-active' : job.status === 'draft' ? 'badge-yellow' : 'status-closed'}">${job.status}</span>
+        </div>
+        <div style="color:var(--gray-500);font-size:0.85rem;margin-bottom:0.5rem;">
+          📍 ${job.location} · 💼 ${job.jobType} · 📅 ${formatDate(job.createdAt)}
+        </div>
+        <div class="flex gap-1 items-center flex-wrap">
+          <span class="badge badge-blue">📝 ${job.applicationCount || 0} applications</span>
+          <span class="badge badge-gray">👁 ${job.views || 0} views</span>
+          ${(job.skills || []).slice(0,3).map(s => `<span class="skill-tag">${s}</span>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;">
+        <button class="btn btn-primary btn-sm" onclick="viewApplicants('${job._id}')">
+          👥 View Applicants
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="openEditJob('${job._id}')">
+          ✏️ Edit
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteJob('${job._id}')">
+          🗑 Delete
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterMyJobs(status, btn) {
+  document.querySelectorAll('#tab-my-jobs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = status === 'all' ? myJobs : myJobs.filter(j => j.status === status);
+  renderMyJobs(filtered, 'myJobsList');
+}
+
+function populateJobFilter() {
+  const sel = document.getElementById('filterJobSelect');
+  myJobs.forEach(j => {
+    const opt = document.createElement('option');
+    opt.value = j._id;
+    opt.textContent = j.title;
+    sel.appendChild(opt);
+  });
+}
+
+async function viewApplicants(jobId) {
+  document.getElementById('filterJobSelect').value = jobId;
+  showTab('applicants');
+  loadApplicants();
+}
+
+async function loadApplicants() {
+  const jobId = document.getElementById('filterJobSelect').value;
+  const skill = document.getElementById('filterSkill').value.trim();
+  const status = document.getElementById('filterStatus').value;
+  const container = document.getElementById('applicantsList');
+
+  if (!jobId) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">👥</div>
+      <h3>Select a job to view applicants</h3>
+      <p>Choose a job from the dropdown above</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="card" style="text-align:center;padding:2rem;">
+    <div class="spinner" style="margin:0 auto;"></div>
+    <p class="text-muted mt-2">Loading applicants...</p>
+  </div>`;
+
+  try {
+    let url = `/applications/job/${jobId}`;
+    const params = new URLSearchParams();
+    if (skill) params.append('skill', skill);
+    if (status) params.append('status', status);
+    if (params.toString()) url += `?${params.toString()}`;
+
+    const data = await API.get(url);
+    const apps = data.applications || [];
+
+    if (apps.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">👥</div>
+        <h3>No applicants found</h3>
+        <p>Try adjusting your filters or wait for more applications</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="color:var(--gray-500);font-size:0.875rem;margin-bottom:1rem;">
+        Found <strong>${apps.length}</strong> applicant(s) · sorted by skill match score
+      </div>
+      ${apps.map(app => renderApplicantCard(app)).join('')}
+    `;
+  } catch (err) {
+    container.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+function renderApplicantCard(app) {
+  const user = app.applicant;
+  if (!user) return '';
+  const initials = getInitials(user.name);
+  return `
+    <div class="applicant-card">
+      <div class="applicant-header">
+        <div class="applicant-avatar">${initials}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <span style="font-weight:700;font-size:1rem;">${user.name}</span>
+            <span class="badge ${getStatusClass(app.status)}">${app.status}</span>
+            ${app.matchScore > 0 ? `<span class="badge badge-green">⚡ ${app.matchScore}% match</span>` : ''}
+          </div>
+          <div style="color:var(--gray-500);font-size:0.85rem;margin:0.25rem 0;">
+            ${user.email} ${user.phone ? '· ' + user.phone : ''}
+            ${user.location ? '· 📍 ' + user.location : ''}
+            ${user.experience ? '· 💼 ' + user.experience + ' yrs exp' : ''}
+          </div>
+          ${user.education?.degree ? `
+            <div style="font-size:0.82rem;color:var(--gray-500);">🎓 ${user.education.degree} ${user.education.institution ? '· ' + user.education.institution : ''}</div>
+          ` : ''}
+        </div>
+      </div>
+
+      ${user.skills?.length > 0 ? `
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.875rem;">
+          ${user.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+        </div>
+      ` : ''}
+
+      ${app.coverLetter ? `
+        <div style="background:var(--gray-50);padding:0.875rem;border-radius:var(--radius);margin-bottom:0.875rem;font-size:0.85rem;color:var(--gray-700);border-left:3px solid var(--primary);">
+          <strong style="display:block;margin-bottom:0.35rem;font-size:0.78rem;text-transform:uppercase;color:var(--gray-500);">Cover Letter</strong>
+          ${app.coverLetter.length > 200 ? app.coverLetter.substring(0, 200) + '...' : app.coverLetter}
+        </div>
+      ` : ''}
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+        <div class="text-xs text-muted">Applied ${timeAgo(app.appliedAt)}</div>
+        <div class="flex gap-1" style="flex-wrap:wrap;">
+          ${user.resume ? `<a href="${user.resume}" target="_blank" class="btn btn-secondary btn-sm">📄 Resume</a>` : ''}
+          <button class="btn btn-primary btn-sm" onclick="openStatusModal('${app._id}', '${user.name}', '${app.status}')">
+            ✏️ Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Post Job ─────────────────────────────────────────────────────────────────
+jSkillsManager = null;
+document.addEventListener('DOMContentLoaded', () => {
+  jSkillsManager = initSkillsInput('jSkillInput', 'jSkillsContainer');
+});
+
+async function postJob(status = 'active') {
+  const alertEl = document.getElementById('postJobAlert');
+  alertEl.innerHTML = '';
+
+  const title = document.getElementById('jTitle').value.trim();
+  const company = document.getElementById('jCompany').value.trim();
+  const location = document.getElementById('jLocation').value.trim();
+  const description = document.getElementById('jDescription').value.trim();
+
+  if (!title || !company || !location || !description) {
+    alertEl.innerHTML = `<div class="alert alert-error">❌ Please fill in all required fields (Title, Company, Location, Description).</div>`;
+    return;
+  }
+
+  const skills = jSkillsManager ? jSkillsManager.getSkills() : [];
+  const responsibilities = document.getElementById('jResponsibilities').value.split('\n').filter(r => r.trim());
+  const benefits = document.getElementById('jBenefits').value.split('\n').filter(b => b.trim());
+
+  const body = {
+    title, company, location, description, skills, status,
+    jobType: document.getElementById('jType').value,
+    category: document.getElementById('jCategory').value,
+    openings: parseInt(document.getElementById('jOpenings').value) || 1,
+    experience: {
+      min: parseInt(document.getElementById('jExpMin').value) || 0,
+      max: parseInt(document.getElementById('jExpMax').value) || 5
+    },
+    salary: {
+      min: parseInt(document.getElementById('jSalMin').value) || null,
+      max: parseInt(document.getElementById('jSalMax').value) || null,
+      currency: 'INR', period: 'yearly'
+    },
+    education: document.getElementById('jEducation').value.trim(),
+    deadline: document.getElementById('jDeadline').value || null,
+    responsibilities, benefits
+  };
+
+  try {
+    alertEl.innerHTML = `<div class="alert alert-info">⏳ Posting job...</div>`;
+    await API.post('/jobs', body);
+    alertEl.innerHTML = `<div class="alert alert-success">✅ Job ${status === 'draft' ? 'saved as draft' : 'published'} successfully!</div>`;
+    showToast(`Job "${title}" published!`, 'success');
+
+    // Reset form
+    ['jTitle', 'jLocation', 'jDescription', 'jExpMin', 'jExpMax', 'jSalMin', 'jSalMax',
+     'jEducation', 'jDeadline', 'jResponsibilities', 'jBenefits', 'jOpenings'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = el.type === 'number' ? '' : '';
+    });
+    document.getElementById('jOpenings').value = 1;
+    if (jSkillsManager) jSkillsManager.setSkills([]);
+    document.getElementById('jSkillsContainer').innerHTML = '';
+
+    await loadMyJobs();
+    await loadStats();
+    setTimeout(() => { alertEl.innerHTML = ''; showTab('my-jobs'); }, 2000);
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+// ─── Edit Job ─────────────────────────────────────────────────────────────────
+function openEditJob(jobId) {
+  const job = myJobs.find(j => j._id === jobId);
+  if (!job) return;
+  document.getElementById('editJobId').value = jobId;
+  document.getElementById('editTitle').value = job.title;
+  document.getElementById('editLocation').value = job.location;
+  document.getElementById('editDescription').value = job.description;
+  document.getElementById('editStatus').value = job.status;
+  document.getElementById('editJobModal').classList.add('active');
+}
+
+function closeEditModal() {
+  document.getElementById('editJobModal').classList.remove('active');
+}
+
+async function submitEditJob() {
+  const id = document.getElementById('editJobId').value;
+  const alertEl = document.getElementById('editJobAlert');
+  try {
+    await API.put(`/jobs/${id}`, {
+      title: document.getElementById('editTitle').value,
+      location: document.getElementById('editLocation').value,
+      description: document.getElementById('editDescription').value,
+      status: document.getElementById('editStatus').value
+    });
+    showToast('Job updated!', 'success');
+    closeEditModal();
+    loadMyJobs();
+    loadStats();
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+async function deleteJob(jobId) {
+  if (!confirm('Delete this job? All applications will also be deleted. This cannot be undone.')) return;
+  try {
+    await API.delete(`/jobs/${jobId}`);
+    showToast('Job deleted.', 'success');
+    loadMyJobs();
+    loadStats();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ─── Status Modal ─────────────────────────────────────────────────────────────
+function openStatusModal(appId, name, currentStatus) {
+  selectedAppId = appId;
+  document.getElementById('statusModalApplicant').textContent = `Applicant: ${name}`;
+  document.getElementById('newStatus').value = currentStatus;
+  document.getElementById('hrNotes').value = '';
+  document.getElementById('statusModal').classList.add('active');
+}
+
+function closeStatusModal() {
+  document.getElementById('statusModal').classList.remove('active');
+  selectedAppId = null;
+}
+
+async function submitStatusUpdate() {
+  if (!selectedAppId) return;
+  try {
+    await API.put(`/applications/${selectedAppId}/status`, {
+      status: document.getElementById('newStatus').value,
+      hrNotes: document.getElementById('hrNotes').value
+    });
+    showToast('Application status updated!', 'success');
+    closeStatusModal();
+    loadApplicants();
+    loadStats();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function saveHRProfile() {
+  const alertEl = document.getElementById('hrProfileAlert');
+  try {
+    const data = await API.put('/auth/profile', {
+      name: document.getElementById('hrName').value,
+      phone: document.getElementById('hrPhone').value,
+      company: {
+        name: document.getElementById('hrCompanyName').value,
+        website: document.getElementById('hrCompanyWebsite').value,
+        description: document.getElementById('hrCompanyDesc').value
+      }
+    });
+    Auth.setSession(Auth.getToken(), data.user);
+    alertEl.innerHTML = `<div class="alert alert-success">✅ Profile saved!</div>`;
+    showToast('Profile updated!', 'success');
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+function showTab(tabId, clickedLink) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  const tab = document.getElementById(`tab-${tabId}`);
+  if (tab) tab.classList.add('active');
+  if (clickedLink) clickedLink.classList.add('active');
+  return false;
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      overlay.classList.remove('active');
+    }
+  });
+});
+
+// Init skills manager after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  jSkillsManager = initSkillsInput('jSkillInput', 'jSkillsContainer');
+});
+
+init();
+injectFooter();
+</script>
+</body>
+</html>

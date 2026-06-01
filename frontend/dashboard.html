@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard – HireHub</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .tab-btn {
+      padding: 0.625rem 1.25rem;
+      border: none; background: none;
+      font-weight: 600; font-size: 0.875rem;
+      color: var(--gray-500); cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-bar {
+      display: flex; border-bottom: 1px solid var(--gray-200);
+      margin-bottom: 1.75rem; overflow-x: auto;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .profile-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 800;
+      color: var(--primary); border: 3px solid var(--primary-light);
+      flex-shrink: 0;
+    }
+    .app-card {
+      background: white;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      transition: var(--transition);
+    }
+    .app-card:hover { box-shadow: var(--shadow-md); border-color: var(--gray-300); }
+    .match-bar {
+      height: 8px; background: var(--gray-200);
+      border-radius: 4px; overflow: hidden;
+      margin-top: 0.5rem;
+    }
+    .match-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 1s ease;
+    }
+  </style>
+</head>
+<body>
+<script src="js/main.js"></script>
+<script>
+  if (!requireAuth('jobseeker')) { /* redirect handled */ }
+  injectNavbar('dashboard');
+</script>
+
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="nav-user" style="padding:0.5rem 1rem 1.5rem;border-bottom:1px solid var(--gray-200);margin-bottom:1rem;">
+      <div id="sidebarAvatar" class="nav-avatar" style="width:48px;height:48px;font-size:1rem;">?</div>
+      <div>
+        <div id="sidebarName" style="font-weight:700;font-size:0.95rem;">Loading...</div>
+        <div id="sidebarRole" class="text-xs text-muted">Job Seeker</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="sidebar-section-title">Main</span>
+      <a href="#" class="sidebar-link active" onclick="showTab('overview', this)">
+        <span class="icon">📊</span> Overview
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('applications', this)">
+        <span class="icon">📝</span> My Applications
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('recommended', this)">
+        <span class="icon">⚡</span> Recommended Jobs
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('saved', this)">
+        <span class="icon">🔖</span> Saved Jobs
+      </a>
+
+      <span class="sidebar-section-title">Account</span>
+      <a href="#" class="sidebar-link" onclick="showTab('profile', this)">
+        <span class="icon">👤</span> My Profile
+      </a>
+      <a href="jobs.html" class="sidebar-link">
+        <span class="icon">🔍</span> Browse Jobs
+      </a>
+      <a href="#" class="sidebar-link" onclick="logout()" style="color:var(--danger);">
+        <span class="icon">🚪</span> Logout
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-content">
+    <!-- Overview Tab -->
+    <div class="tab-content active" id="tab-overview">
+      <h2 style="margin-bottom:0.5rem;">Welcome back, <span id="welcomeName">...</span>! 👋</h2>
+      <p class="text-muted mb-3">Here's what's happening with your job search.</p>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#eff6ff;">📝</div>
+          <div>
+            <div class="stat-card-value" id="statTotalApps">—</div>
+            <div class="stat-card-label">Total Applications</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#dcfce7;">✅</div>
+          <div>
+            <div class="stat-card-value" id="statShortlisted">—</div>
+            <div class="stat-card-label">Shortlisted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#fef9c3;">⏳</div>
+          <div>
+            <div class="stat-card-value" id="statPending">—</div>
+            <div class="stat-card-label">Pending Review</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:#ede9fe;">🎯</div>
+          <div>
+            <div class="stat-card-value" id="statOffered">—</div>
+            <div class="stat-card-label">Offers Received</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Completeness -->
+      <div class="card mb-3" id="profileCompletenessCard">
+        <h4 style="margin-bottom:0.75rem;">Profile Completeness</h4>
+        <div class="progress-bar">
+          <div class="progress-fill" id="profileProgress" style="width:0%"></div>
+        </div>
+        <div class="flex justify-between items-center mt-1">
+          <span class="text-sm text-muted" id="profileProgressText">0% complete</span>
+          <button class="btn btn-sm btn-outline" onclick="showTab('profile')">Complete Profile →</button>
+        </div>
+        <div id="profileTips" class="mt-2" style="font-size:0.8rem;color:var(--gray-500);"></div>
+      </div>
+
+      <!-- Recent Applications -->
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <h4>Recent Applications</h4>
+          <button class="btn btn-sm btn-outline" onclick="showTab('applications')">View All</button>
+        </div>
+        <div id="recentApplications">
+          <div class="card" style="text-align:center;padding:2rem;">
+            <div class="spinner" style="margin:0 auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Applications Tab -->
+    <div class="tab-content" id="tab-applications">
+      <div class="flex justify-between items-center mb-3">
+        <h2>My Applications</h2>
+        <a href="jobs.html" class="btn btn-primary btn-sm">+ Apply to New Jobs</a>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterApplications('all', this)">All</button>
+        <button class="tab-btn" onclick="filterApplications('pending', this)">Pending</button>
+        <button class="tab-btn" onclick="filterApplications('reviewing', this)">Reviewing</button>
+        <button class="tab-btn" onclick="filterApplications('shortlisted', this)">Shortlisted</button>
+        <button class="tab-btn" onclick="filterApplications('offered', this)">Offered</button>
+        <button class="tab-btn" onclick="filterApplications('rejected', this)">Rejected</button>
+      </div>
+
+      <div id="applicationsList">
+        <div class="card" style="text-align:center;padding:2rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommended Jobs Tab -->
+    <div class="tab-content" id="tab-recommended">
+      <h2 style="margin-bottom:0.5rem;">⚡ AI Job Recommendations</h2>
+      <p class="text-muted mb-3">Jobs matched to your skills profile</p>
+      <div id="recommendedJobs">
+        <div class="card" style="text-align:center;padding:2rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Jobs Tab -->
+    <div class="tab-content" id="tab-saved">
+      <h2 style="margin-bottom:0.5rem;">🔖 Saved Jobs</h2>
+      <p class="text-muted mb-3">Jobs you've bookmarked for later</p>
+      <div id="savedJobsList">
+        <div class="card" style="text-align:center;padding:2rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Tab -->
+    <div class="tab-content" id="tab-profile">
+      <div class="flex justify-between items-center mb-3">
+        <h2>My Profile</h2>
+        <button class="btn btn-primary" id="saveProfileBtn" onclick="saveProfile()">Save Changes</button>
+      </div>
+
+      <div class="card mb-3">
+        <div class="flex gap-3 items-center mb-3">
+          <div class="profile-avatar" id="profileAvatarBig">?</div>
+          <div>
+            <h3 id="profileNameDisplay">...</h3>
+            <p class="text-muted text-sm" id="profileEmailDisplay">...</p>
+          </div>
+        </div>
+
+        <div id="profileAlert"></div>
+
+        <div class="grid-2" style="gap:1.25rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="profName" class="form-control" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Phone Number</label>
+            <input type="text" id="profPhone" class="form-control" placeholder="+91 98765 43210" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Location</label>
+            <input type="text" id="profLocation" class="form-control" placeholder="City, State" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Years of Experience</label>
+            <input type="number" id="profExperience" class="form-control" placeholder="0" min="0" max="50" />
+          </div>
+        </div>
+
+        <div class="form-group mt-3">
+          <label class="form-label">Bio / Summary</label>
+          <textarea id="profBio" class="form-control" rows="3"
+            placeholder="Tell employers about yourself, your goals and what makes you unique..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Resume URL</label>
+          <input type="url" id="profResume" class="form-control"
+            placeholder="https://drive.google.com/your-resume-link" />
+          <div class="form-hint">Link to your resume (Google Drive, Dropbox, etc.)</div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <h4 style="margin-bottom:1rem;">🎓 Education</h4>
+        <div class="grid-2" style="gap:1rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Degree</label>
+            <input type="text" id="eduDegree" class="form-control" placeholder="B.Tech, MBA, BCA..." />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Institution</label>
+            <input type="text" id="eduInstitution" class="form-control" placeholder="University / College name" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Graduation Year</label>
+            <input type="number" id="eduYear" class="form-control" placeholder="2024" min="1980" max="2030" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4 style="margin-bottom:0.5rem;">💡 Your Skills</h4>
+        <p class="text-muted text-sm mb-2">Add skills to get AI-powered job recommendations</p>
+        <div class="skills-container" id="profileSkillsContainer"></div>
+        <input type="text" id="profileSkillInput" class="form-control mt-2"
+          placeholder="Type a skill and press Enter (e.g. JavaScript, React, Python...)" />
+        <div class="form-hint">Press Enter or comma to add. These are used to match you with jobs.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+let allApplications = [];
+let profileSkillsManager;
+let currentUser = null;
+
+async function init() {
+  try {
+    const data = await API.get('/auth/me');
+    currentUser = data.user;
+    renderUserInfo(currentUser);
+    loadDashboardData();
+  } catch (err) {
+    showToast(err.message, 'error');
+    if (err.message.includes('token') || err.message.includes('auth')) {
+      Auth.clearSession();
+      window.location.href = 'login.html';
+    }
+  }
+}
+
+function renderUserInfo(user) {
+  const initials = getInitials(user.name);
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent = user.name;
+  document.getElementById('welcomeName').textContent = user.name.split(' ')[0];
+  document.getElementById('profileAvatarBig').textContent = initials;
+  document.getElementById('profileNameDisplay').textContent = user.name;
+  document.getElementById('profileEmailDisplay').textContent = user.email;
+
+  // Fill profile form
+  document.getElementById('profName').value = user.name || '';
+  document.getElementById('profPhone').value = user.phone || '';
+  document.getElementById('profLocation').value = user.location || '';
+  document.getElementById('profExperience').value = user.experience || '';
+  document.getElementById('profBio').value = user.bio || '';
+  document.getElementById('profResume').value = user.resume || '';
+  document.getElementById('eduDegree').value = user.education?.degree || '';
+  document.getElementById('eduInstitution').value = user.education?.institution || '';
+  document.getElementById('eduYear').value = user.education?.year || '';
+
+  // Init skills
+  profileSkillsManager = initSkillsInput('profileSkillInput', 'profileSkillsContainer');
+  if (profileSkillsManager) profileSkillsManager.setSkills(user.skills || []);
+
+  // Profile completeness
+  computeProfileProgress(user);
+}
+
+function computeProfileProgress(user) {
+  const checks = [
+    { field: 'name', label: 'Name' },
+    { field: 'phone', label: 'Phone number' },
+    { field: 'location', label: 'Location' },
+    { field: 'bio', label: 'Bio/Summary' },
+    { field: 'resume', label: 'Resume link' },
+  ];
+  const hasSkills = user.skills?.length > 0;
+  const hasEducation = user.education?.degree;
+
+  let score = 0;
+  const missing = [];
+  checks.forEach(c => {
+    if (user[c.field]) score += 14;
+    else missing.push(c.label);
+  });
+  if (hasSkills) score += 8; else missing.push('Skills');
+  if (hasEducation) score += 2; else missing.push('Education');
+  score = Math.min(score, 100);
+
+  document.getElementById('profileProgress').style.width = score + '%';
+  document.getElementById('profileProgressText').textContent = `${score}% complete`;
+  if (missing.length > 0) {
+    document.getElementById('profileTips').textContent =
+      `💡 Add: ${missing.slice(0, 3).join(', ')} to improve visibility`;
+  }
+}
+
+async function loadDashboardData() {
+  await Promise.all([loadApplications(), loadRecommended(), loadSaved()]);
+}
+
+async function loadApplications() {
+  try {
+    const data = await API.get('/applications/my/applications');
+    allApplications = data.applications || [];
+    renderApplicationStats(allApplications);
+    renderApplications(allApplications, 'recentApplications', 3);
+    renderApplications(allApplications, 'applicationsList');
+  } catch (err) {
+    document.getElementById('recentApplications').innerHTML =
+      `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+function renderApplicationStats(apps) {
+  document.getElementById('statTotalApps').textContent = apps.length;
+  document.getElementById('statShortlisted').textContent = apps.filter(a => a.status === 'shortlisted').length;
+  document.getElementById('statPending').textContent = apps.filter(a => a.status === 'pending').length;
+  document.getElementById('statOffered').textContent = apps.filter(a => a.status === 'offered').length;
+}
+
+function renderApplications(apps, containerId, limit = null) {
+  const container = document.getElementById(containerId);
+  const toShow = limit ? apps.slice(0, limit) : apps;
+
+  if (!toShow || toShow.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📝</div>
+      <h3>No applications yet</h3>
+      <p>Start applying to jobs that match your skills</p>
+      <a href="jobs.html" class="btn btn-primary mt-2">Browse Jobs</a>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = toShow.map(app => `
+    <div class="app-card">
+      <div>
+        <div style="font-weight:700;font-size:1rem;margin-bottom:0.25rem;">${app.job?.title || 'Job Deleted'}</div>
+        <div style="color:var(--gray-500);font-size:0.85rem;margin-bottom:0.5rem;">${app.job?.company || ''} · ${app.job?.location || ''}</div>
+        <div class="flex gap-1 items-center flex-wrap">
+          <span class="badge ${getStatusClass(app.status)}">${app.status}</span>
+          <span class="text-xs text-muted">Applied ${timeAgo(app.appliedAt)}</span>
+          ${app.matchScore > 0 ? `<span class="badge badge-green">⚡ ${app.matchScore}% match</span>` : ''}
+        </div>
+        ${app.matchScore > 0 ? `
+          <div class="match-bar mt-2" style="max-width:200px;">
+            <div class="match-fill" style="width:${app.matchScore}%"></div>
+          </div>` : ''}
+      </div>
+      <div style="text-align:right;display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;">
+        ${app.job?.status === 'active' && app.status === 'pending' ? `
+          <button class="btn btn-danger btn-sm" onclick="withdrawApplication('${app._id}')">Withdraw</button>
+        ` : ''}
+        <span class="badge ${app.job?.status === 'closed' ? 'badge-red' : 'badge-green'}">
+          Job: ${app.job?.status || 'N/A'}
+        </span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterApplications(status, btn) {
+  document.querySelectorAll('#tab-applications .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = status === 'all' ? allApplications : allApplications.filter(a => a.status === status);
+  renderApplications(filtered, 'applicationsList');
+}
+
+async function withdrawApplication(appId) {
+  if (!confirm('Are you sure you want to withdraw this application?')) return;
+  try {
+    await API.delete(`/applications/${appId}`);
+    showToast('Application withdrawn.', 'success');
+    loadApplications();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function loadRecommended() {
+  try {
+    const data = await API.get('/jobs/user/recommend');
+    const container = document.getElementById('recommendedJobs');
+    if (!data.jobs || data.jobs.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">⚡</div>
+        <h3>No recommendations yet</h3>
+        <p>Add skills to your profile to get AI-powered job recommendations</p>
+        <button class="btn btn-primary mt-2" onclick="showTab('profile')">Add Skills</button>
+      </div>`;
+      return;
+    }
+    container.innerHTML = data.jobs.map(job => `
+      <div class="app-card" onclick="window.location='jobs.html?id=${job._id}'" style="cursor:pointer;margin-bottom:1rem;grid-template-columns:52px 1fr auto;">
+        <div class="company-logo">${(job.company || 'CO').substring(0,2).toUpperCase()}</div>
+        <div>
+          <div style="font-weight:700;margin-bottom:0.25rem;">${job.title}</div>
+          <div style="color:var(--gray-500);font-size:0.85rem;margin-bottom:0.5rem;">${job.company} · ${job.location}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.5rem;">
+            ${(job.matchedSkills || []).map(s => `<span class="skill-tag" style="background:#dcfce7;color:#166534;">${s}</span>`).join('')}
+          </div>
+          <div class="match-bar" style="max-width:200px;">
+            <div class="match-fill" style="width:${job.matchScore}%"></div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="job-match-score" style="justify-content:flex-end;">⚡ ${job.matchScore}%</div>
+          <div class="text-xs text-muted mt-1">match score</div>
+          <div class="job-salary mt-1">${formatSalary(job.salary)}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('recommendedJobs').innerHTML =
+      `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+async function loadSaved() {
+  try {
+    const data = await API.get('/auth/me');
+    const saved = data.user.savedJobs || [];
+    const container = document.getElementById('savedJobsList');
+    if (saved.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">🔖</div>
+        <h3>No saved jobs</h3>
+        <p>Save jobs while browsing to find them easily later</p>
+        <a href="jobs.html" class="btn btn-primary mt-2">Browse Jobs</a>
+      </div>`;
+      return;
+    }
+    container.innerHTML = saved.map(job => `
+      <div class="app-card" onclick="window.location='jobs.html?id=${job._id}'" style="cursor:pointer;margin-bottom:1rem;grid-template-columns:52px 1fr auto;">
+        <div class="company-logo">${(job.company || 'CO').substring(0,2).toUpperCase()}</div>
+        <div>
+          <div style="font-weight:700;margin-bottom:0.25rem;">${job.title}</div>
+          <div style="color:var(--gray-500);font-size:0.85rem;">${job.company} · ${job.location}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); unsaveJob('${job._id}', this)">
+          Remove
+        </button>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('savedJobsList').innerHTML =
+      `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+}
+
+async function unsaveJob(jobId, btn) {
+  try {
+    await API.post(`/auth/save-job/${jobId}`, {});
+    showToast('Removed from saved jobs.', 'success');
+    loadSaved();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner spinner-sm"></div> Saving...';
+
+  try {
+    const body = {
+      name: document.getElementById('profName').value.trim(),
+      phone: document.getElementById('profPhone').value.trim(),
+      location: document.getElementById('profLocation').value.trim(),
+      experience: parseInt(document.getElementById('profExperience').value) || 0,
+      bio: document.getElementById('profBio').value.trim(),
+      resume: document.getElementById('profResume').value.trim(),
+      skills: profileSkillsManager ? profileSkillsManager.getSkills() : [],
+      education: {
+        degree: document.getElementById('eduDegree').value.trim(),
+        institution: document.getElementById('eduInstitution').value.trim(),
+        year: parseInt(document.getElementById('eduYear').value) || null
+      }
+    };
+
+    const data = await API.put('/auth/profile', body);
+    Auth.setSession(Auth.getToken(), data.user);
+    currentUser = data.user;
+    renderUserInfo(data.user);
+    document.getElementById('profileAlert').innerHTML =
+      `<div class="alert alert-success">✅ Profile updated successfully!</div>`;
+    showToast('Profile saved!', 'success');
+    setTimeout(() => { document.getElementById('profileAlert').innerHTML = ''; }, 3000);
+  } catch (err) {
+    document.getElementById('profileAlert').innerHTML =
+      `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save Changes';
+}
+
+function showTab(tabId, clickedLink) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  const tab = document.getElementById(`tab-${tabId}`);
+  if (tab) tab.classList.add('active');
+  if (clickedLink) clickedLink.classList.add('active');
+  return false;
+}
+
+init();
+injectFooter();
+</script>
+</body>
+</html>

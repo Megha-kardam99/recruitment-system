@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HireHub – Find Your Dream Job</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<script src="js/main.js"></script>
+<script>injectNavbar('home');</script>
+
+<!-- ─── Hero Section ─────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-tag">
+        🚀 <span>AI-Powered Recruitment Platform</span>
+      </div>
+      <h1 class="hero-title">
+        Find Jobs That Match<br>
+        <span>Your Skills Perfectly</span>
+      </h1>
+      <p class="hero-desc">
+        HireHub uses smart skill-matching to connect you with the right opportunities.
+        Browse thousands of jobs or post your openings today.
+      </p>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input type="text" id="heroSearch" placeholder="Job title, skills, or keywords..." />
+        <div class="search-divider"></div>
+        <input type="text" id="heroLocation" placeholder="City or Remote" style="max-width:180px; border:none; outline:none; padding:1rem 1rem; font-size:0.95rem; color:var(--gray-800);" />
+        <button onclick="heroSearch()">
+          🔍 Search Jobs
+        </button>
+      </div>
+
+      <!-- Popular Searches -->
+      <div class="flex gap-1 mt-2" style="flex-wrap:wrap;">
+        <span class="text-sm text-muted">Popular:</span>
+        <a href="jobs.html?search=React" class="badge badge-blue" style="cursor:pointer;">React Developer</a>
+        <a href="jobs.html?search=Python" class="badge badge-green" style="cursor:pointer;">Python Engineer</a>
+        <a href="jobs.html?search=Product Manager" class="badge badge-purple" style="cursor:pointer;">Product Manager</a>
+        <a href="jobs.html?search=UI UX" class="badge badge-cyan" style="cursor:pointer;">UI/UX Designer</a>
+        <a href="jobs.html?jobType=remote" class="badge badge-yellow" style="cursor:pointer;">Remote Jobs</a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-number" id="statJobs">—</span>
+          <span class="stat-label">Active Jobs</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Companies Hiring</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">10K+</span>
+          <span class="stat-label">Candidates Placed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Featured Job Categories ──────────────────────────────────────────── -->
+<section class="section" style="background:white;">
+  <div class="container">
+    <div class="section-header text-center">
+      <h2>Explore by Category</h2>
+      <p>Discover opportunities across various industries and domains</p>
+    </div>
+
+    <div class="grid-4" id="categoriesGrid">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ─── Latest Jobs ───────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="section-header flex justify-between items-center">
+      <div>
+        <h2>Latest Job Openings</h2>
+        <p>Fresh opportunities added daily</p>
+      </div>
+      <a href="jobs.html" class="btn btn-outline">View All Jobs →</a>
+    </div>
+
+    <div id="latestJobsGrid" class="grid-3">
+      <!-- Jobs injected by JS -->
+      <div class="empty-state" style="grid-column:1/-1;">
+        <div class="spinner" style="margin:0 auto;"></div>
+        <p class="mt-2 text-muted">Loading jobs...</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How It Works ──────────────────────────────────────────────────────── -->
+<section class="section" style="background: linear-gradient(135deg, #f0f7ff, #e8f0fe);">
+  <div class="container">
+    <div class="section-header text-center">
+      <h2>How HireHub Works</h2>
+      <p>Simple steps to kickstart your career or hire top talent</p>
+    </div>
+
+    <div class="grid-2" style="gap:3rem; align-items:center;">
+      <!-- For Job Seekers -->
+      <div>
+        <h3 class="mb-3" style="color:var(--primary);">👤 For Job Seekers</h3>
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+          <div class="card" style="flex-direction:row;gap:1rem;display:flex;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0;">1</div>
+            <div>
+              <h4>Create Your Profile</h4>
+              <p class="text-muted text-sm mt-1">Add your skills, experience, and upload your resume to get started.</p>
+            </div>
+          </div>
+          <div class="card" style="flex-direction:row;gap:1rem;display:flex;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0;">2</div>
+            <div>
+              <h4>Discover Matched Jobs</h4>
+              <p class="text-muted text-sm mt-1">Our AI recommends jobs that perfectly match your skills and preferences.</p>
+            </div>
+          </div>
+          <div class="card" style="flex-direction:row;gap:1rem;display:flex;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0;">3</div>
+            <div>
+              <h4>Apply & Track</h4>
+              <p class="text-muted text-sm mt-1">Apply in one click and track your application status in real-time.</p>
+            </div>
+          </div>
+        </div>
+        <a href="register.html" class="btn btn-primary mt-4">Create Free Account →</a>
+      </div>
+
+      <!-- For HR -->
+      <div>
+        <h3 class="mb-3" style="color:var(--accent);">🏢 For Employers</h3>
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+          <div class="card" style="flex-direction:row;gap:1rem;display:flex;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0;">1</div>
+            <div>
+              <h4>Post Job Openings</h4>
+              <p class="text-muted text-sm mt-1">Create detailed job listings with required skills, salary, and more.</p>
+            </div>
+          </div>
+          <div class="card" style="flex-direction:row;gap:1rem;display:flex;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0;">2</div>
+            <div>
+              <h4>Review Smart-Matched Candidates</h4>
+              <p class="text-muted text-sm mt-1">Applicants are ranked by skill match score. Find the best fit instantly.</p>
+            </div>
+          </div>
+          <div class="card" style="flex-direction:row;gap:1rem;display:flex;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0;">3</div>
+            <div>
+              <h4>Hire the Right Talent</h4>
+              <p class="text-muted text-sm mt-1">Manage applications, schedule interviews, and make offers – all in one place.</p>
+            </div>
+          </div>
+        </div>
+        <a href="register.html?role=hr" class="btn btn-primary mt-4" style="background:var(--accent);border-color:var(--accent);">Start Hiring →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA Banner ────────────────────────────────────────────────────────── -->
+<section style="background:linear-gradient(135deg, var(--primary), var(--accent)); padding:5rem 0; color:white; text-align:center;">
+  <div class="container">
+    <h2 style="color:white;font-size:2.5rem;margin-bottom:1rem;">Ready to Take the Next Step?</h2>
+    <p style="opacity:0.9;font-size:1.1rem;margin-bottom:2.5rem;">Join thousands of professionals who found their dream jobs through HireHub.</p>
+    <div class="flex justify-center gap-2" style="flex-wrap:wrap;">
+      <a href="register.html" class="btn btn-lg" style="background:white;color:var(--primary);border-color:white;">
+        🚀 Start Job Search
+      </a>
+      <a href="register.html?role=hr" class="btn btn-lg btn-outline" style="border-color:rgba(255,255,255,0.5);color:white;">
+        🏢 Post a Job
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+// Fetch latest jobs
+async function loadLatestJobs() {
+  try {
+    const data = await API.get('/jobs?limit=6&sort=-createdAt');
+    const grid = document.getElementById('latestJobsGrid');
+    
+    // Update stats
+    document.getElementById('statJobs').textContent = data.total + '+';
+
+    if (!data.jobs || data.jobs.length === 0) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+        <div class="empty-state-icon">🏢</div>
+        <h3>No jobs yet</h3>
+        <p>Be the first to post a job!</p>
+        <a href="register.html?role=hr" class="btn btn-primary mt-2">Post a Job</a>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = data.jobs.map(job => createJobCard(job)).join('');
+  } catch (err) {
+    console.error(err);
+    document.getElementById('latestJobsGrid').innerHTML = `
+      <div class="alert alert-info" style="grid-column:1/-1;">
+        ℹ️ Start the backend server to see live job listings. Check setup instructions.
+      </div>`;
+  }
+}
+
+function createJobCard(job) {
+  const initials = job.company ? job.company.substring(0,2).toUpperCase() : 'CO';
+  return `
+    <div class="job-card" onclick="window.location='jobs.html?id=${job._id}'">
+      <div class="job-card-header">
+        <div class="company-logo">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="job-card-title">${job.title}</div>
+          <div class="job-card-company">${job.company}</div>
+        </div>
+        <span class="badge ${getJobTypeColor(job.jobType)}">${job.jobType}</span>
+      </div>
+      <div class="job-card-meta">
+        <span class="job-meta-item">📍 ${job.location}</span>
+        <span class="job-meta-item">💼 ${job.experience?.min || 0}-${job.experience?.max || 5} yrs</span>
+        <span class="job-meta-item">🕐 ${timeAgo(job.createdAt)}</span>
+      </div>
+      <div class="job-card-skills">
+        ${(job.skills || []).slice(0,4).map(s => `<span class="skill-tag">${s}</span>`).join('')}
+        ${job.skills?.length > 4 ? `<span class="badge badge-gray">+${job.skills.length - 4}</span>` : ''}
+      </div>
+      <div class="job-card-footer">
+        <span class="job-salary">${formatSalary(job.salary)}</span>
+        <span class="badge badge-gray">👁 ${job.views || 0} views</span>
+      </div>
+    </div>
+  `;
+}
+
+// Categories data
+const categories = [
+  { icon: '💻', name: 'Technology', color: '#eff6ff', desc: 'Dev, QA, DevOps', cat: 'technology' },
+  { icon: '📊', name: 'Marketing', color: '#fef9c3', desc: 'Digital, SEO, Growth', cat: 'marketing' },
+  { icon: '💰', name: 'Finance', color: '#dcfce7', desc: 'Accounting, Analysis', cat: 'finance' },
+  { icon: '🎨', name: 'Design', color: '#fce7f3', desc: 'UI/UX, Graphic', cat: 'design' },
+  { icon: '🤝', name: 'HR & Recruiting', color: '#ede9fe', desc: 'Talent, Training', cat: 'hr' },
+  { icon: '📦', name: 'Operations', color: '#e0f7fa', desc: 'Supply Chain, Ops', cat: 'operations' },
+  { icon: '📞', name: 'Sales', color: '#fff7ed', desc: 'BDM, Account Mgmt', cat: 'sales' },
+  { icon: '🌐', name: 'Others', color: '#f1f5f9', desc: 'Explore more', cat: 'other' }
+];
+
+function loadCategories() {
+  const grid = document.getElementById('categoriesGrid');
+  grid.innerHTML = categories.map(c => `
+    <a href="jobs.html?category=${c.cat}" class="card card-hover" style="text-align:center;background:${c.color};border-color:transparent;text-decoration:none;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">${c.icon}</div>
+      <h4 style="margin-bottom:0.25rem;">${c.name}</h4>
+      <p class="text-muted text-sm">${c.desc}</p>
+    </a>
+  `).join('');
+}
+
+function heroSearch() {
+  const q = document.getElementById('heroSearch').value.trim();
+  const loc = document.getElementById('heroLocation').value.trim();
+  let url = 'jobs.html?';
+  if (q) url += `search=${encodeURIComponent(q)}&`;
+  if (loc) url += `location=${encodeURIComponent(loc)}`;
+  window.location.href = url;
+}
+
+document.getElementById('heroSearch')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') heroSearch();
+});
+
+loadCategories();
+loadLatestJobs();
+injectFooter();
+</script>
+</body>
+</html>

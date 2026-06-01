@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register – HireHub</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%); min-height: 100vh; }
+    .auth-page {
+      display: flex; min-height: 100vh;
+      align-items: center; justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .auth-box {
+      background: white; border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      width: 100%; max-width: 540px;
+      padding: 3rem 2.5rem;
+    }
+    .auth-logo {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 1.5rem; font-weight: 800; color: var(--primary);
+      margin-bottom: 2rem;
+    }
+    .auth-logo .logo-icon {
+      width: 40px; height: 40px; background: var(--primary);
+      border-radius: 12px; display: flex; align-items: center;
+      justify-content: center; color: white; font-size: 1.25rem;
+    }
+    .role-toggle {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.75rem; margin-bottom: 1.75rem;
+    }
+    .role-btn {
+      padding: 1rem; border: 2px solid var(--gray-200);
+      border-radius: var(--radius-lg); background: white;
+      cursor: pointer; transition: var(--transition); text-align: center;
+      font-family: var(--font-main);
+    }
+    .role-btn .role-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+    .role-btn .role-name { font-weight: 700; font-size: 0.95rem; display: block; }
+    .role-btn .role-desc { font-size: 0.78rem; color: var(--gray-500); display: block; margin-top: 0.2rem; }
+    .role-btn.active { border-color: var(--primary); background: var(--primary-bg); }
+    .role-btn.active .role-name { color: var(--primary); }
+    .hr-extra { display: none; }
+    .hr-extra.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <a href="index.html" class="auth-logo">
+      <div class="logo-icon">💼</div>
+      HireHub
+    </a>
+
+    <h1 style="font-size:1.75rem;font-weight:800;margin-bottom:0.5rem;">Create your account</h1>
+    <p style="color:var(--gray-500);margin-bottom:1.75rem;">Join thousands of professionals on HireHub</p>
+
+    <!-- Role Selection -->
+    <div class="role-toggle">
+      <button class="role-btn active" id="roleJobseeker" onclick="selectRole('jobseeker')">
+        <span class="role-icon">👤</span>
+        <span class="role-name">Job Seeker</span>
+        <span class="role-desc">Find & apply for jobs</span>
+      </button>
+      <button class="role-btn" id="roleHR" onclick="selectRole('hr')">
+        <span class="role-icon">🏢</span>
+        <span class="role-name">Employer / HR</span>
+        <span class="role-desc">Post jobs & hire talent</span>
+      </button>
+    </div>
+
+    <div id="alertMsg"></div>
+
+    <form id="registerForm">
+      <input type="hidden" id="selectedRole" value="jobseeker" />
+
+      <div class="grid-2" style="gap:1rem;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Full Name *</label>
+          <input type="text" id="name" class="form-control" placeholder="John Doe" required />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Email Address *</label>
+          <input type="email" id="email" class="form-control" placeholder="you@example.com" required />
+        </div>
+      </div>
+
+      <div class="form-group mt-2">
+        <label class="form-label">Password *</label>
+        <div style="position:relative;">
+          <input type="password" id="password" class="form-control"
+            placeholder="Min 6 characters" required minlength="6" style="padding-right:3rem;" />
+          <button type="button" onclick="togglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.1rem;color:var(--gray-400);" id="eyeBtn">👁</button>
+        </div>
+        <div class="form-hint">Must be at least 6 characters</div>
+      </div>
+
+      <!-- HR-specific fields -->
+      <div class="hr-extra" id="hrFields">
+        <div class="form-group">
+          <label class="form-label">Company Name *</label>
+          <input type="text" id="companyName" class="form-control" placeholder="Your company name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company Website</label>
+          <input type="url" id="companyWebsite" class="form-control" placeholder="https://yourcompany.com" />
+        </div>
+      </div>
+
+      <!-- Job Seeker specific fields -->
+      <div id="seekerFields">
+        <div class="form-group">
+          <label class="form-label">Location (City)</label>
+          <input type="text" id="location" class="form-control" placeholder="e.g. Bangalore, Mumbai, Remote" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Skills</label>
+          <div class="skills-container" id="skillsContainer">
+            <!-- Tags will appear here -->
+          </div>
+          <input type="text" id="skillInput" class="form-control mt-1"
+            placeholder="Type a skill and press Enter (e.g. JavaScript, Python...)" />
+          <div class="form-hint">Add skills to get job recommendations</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label style="display:flex;align-items:flex-start;gap:0.75rem;cursor:pointer;">
+          <input type="checkbox" id="agreeTerms" required
+            style="width:16px;height:16px;accent-color:var(--primary);margin-top:3px;" />
+          <span class="text-sm" style="color:var(--gray-600);">
+            I agree to HireHub's <a href="#" style="color:var(--primary);">Terms of Service</a>
+            and <a href="#" style="color:var(--primary);">Privacy Policy</a>
+          </span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full btn-lg" id="registerBtn">
+        Create Account
+      </button>
+    </form>
+
+    <p class="text-center text-sm mt-3" style="color:var(--gray-500);">
+      Already have an account?
+      <a href="login.html" style="color:var(--primary);font-weight:600;">Sign in →</a>
+    </p>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+<script>
+  // Redirect if already logged in
+  if (Auth.isLoggedIn()) {
+    window.location.href = Auth.isHR() ? 'hr-dashboard.html' : 'dashboard.html';
+  }
+
+  // Pre-select role from URL param
+  const urlRole = new URLSearchParams(window.location.search).get('role');
+  if (urlRole === 'hr') selectRole('hr');
+
+  // Skills input
+  const skillsManager = initSkillsInput('skillInput', 'skillsContainer');
+
+  function selectRole(role) {
+    document.getElementById('selectedRole').value = role;
+    document.getElementById('roleJobseeker').classList.toggle('active', role === 'jobseeker');
+    document.getElementById('roleHR').classList.toggle('active', role === 'hr');
+    document.getElementById('hrFields').classList.toggle('visible', role === 'hr');
+    document.getElementById('seekerFields').style.display = role === 'hr' ? 'none' : 'block';
+
+    // Make company name required for HR
+    const companyInput = document.getElementById('companyName');
+    if (companyInput) companyInput.required = role === 'hr';
+  }
+
+  function togglePwd() {
+    const input = document.getElementById('password');
+    const btn = document.getElementById('eyeBtn');
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '👁' : '🙈';
+  }
+
+  function showAlert(msg, type = 'error') {
+    document.getElementById('alertMsg').innerHTML = `
+      <div class="alert alert-${type === 'error' ? 'error' : 'success'}">
+        ${type === 'error' ? '❌' : '✅'} ${msg}
+      </div>`;
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('registerBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spinner spinner-sm"></div> Creating account...`;
+    document.getElementById('alertMsg').innerHTML = '';
+
+    const role = document.getElementById('selectedRole').value;
+    const body = {
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+      role
+    };
+
+    if (role === 'hr') {
+      body.company = {
+        name: document.getElementById('companyName').value.trim(),
+        website: document.getElementById('companyWebsite').value.trim()
+      };
+    } else {
+      body.location = document.getElementById('location').value.trim();
+      body.skills = skillsManager ? skillsManager.getSkills() : [];
+    }
+
+    try {
+      const data = await API.post('/auth/register', body);
+      Auth.setSession(data.token, data.user);
+      showAlert('Account created! Redirecting to your dashboard...', 'success');
+      setTimeout(() => {
+        window.location.href = role === 'hr' ? 'hr-dashboard.html' : 'dashboard.html';
+      }, 1000);
+    } catch (err) {
+      showAlert(err.message);
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    }
+  });
+</script>
+</body>
+</html>
