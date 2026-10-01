@@ -12,13 +12,15 @@ const {
 } = require('../controllers/jobController');
 const { protect, authorize } = require('../middleware/auth');
 
+// Protected routes
+router.get('/hr/myjobs', protect, authorize('hr', 'admin'), getMyJobs);
+router.get('/user/recommend', protect, authorize('jobseeker'), recommendJobs);
+
 // Public routes
 router.get('/', getJobs);
 router.get('/:id', getJob);
 
-// Protected routes
-router.get('/hr/myjobs', protect, authorize('hr', 'admin'), getMyJobs);
-router.get('/user/recommend', protect, authorize('jobseeker'), recommendJobs);
+// Protected mutation routes
 router.post('/', protect, authorize('hr', 'admin'), createJob);
 router.put('/:id', protect, authorize('hr', 'admin'), updateJob);
 router.delete('/:id', protect, authorize('hr', 'admin'), deleteJob);

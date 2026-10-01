@@ -12,7 +12,11 @@ const Job = require('./models/Job');
 const Application = require('./models/Application');
 
 const seedData = async () => {
-  await connectDB();
+  const connected = await connectDB();
+  if (!connected) {
+    process.exitCode = 1;
+    return;
+  }
   console.log('🌱 Starting database seed...');
 
   // Clear existing data
@@ -277,6 +281,101 @@ const seedData = async () => {
       ],
       benefits: ['Health Insurance', 'Professional Development', 'Hybrid Work', 'Annual Bonus'],
       views: 44,
+      applicationCount: 0
+    },
+    // Finance
+    {
+      title: 'Financial Analyst',
+      company: 'TechCorp India',
+      description: 'We are seeking a detail-oriented Financial Analyst to manage financial modeling, forecasting, budgeting, and performance analysis. You will collaborate with executive management to drive financial strategies and optimize profitability.',
+      skills: ['financial modeling', 'excel', 'accounting', 'budgeting', 'forecasting', 'sql'],
+      location: 'Bangalore',
+      jobType: 'full-time',
+      salary: { min: 800000, max: 1500000, currency: 'INR', period: 'yearly' },
+      experience: { min: 2, max: 5 },
+      education: 'MBA Finance / CA / CFA',
+      postedBy: hrUser._id,
+      category: 'finance',
+      status: 'active',
+      openings: 2,
+      responsibilities: [
+        'Develop financial models and quarterly forecasts',
+        'Prepare monthly operational metrics and reports',
+        'Analyze cost structures and variance reports'
+      ],
+      benefits: ['Health Insurance', 'Performance Bonus', 'Flexible Hours'],
+      views: 65,
+      applicationCount: 0
+    },
+    // Operations
+    {
+      title: 'Operations Manager',
+      company: 'StartupXYZ',
+      description: 'StartupXYZ is looking for a dynamic Operations Manager to oversee day-to-day business operations, streamline supply chain processes, and ensure team productivity and operational excellence across departments.',
+      skills: ['operations management', 'process optimization', 'supply chain', 'project management', 'vendor management'],
+      location: 'Mumbai',
+      jobType: 'full-time',
+      salary: { min: 900000, max: 1700000, currency: 'INR', period: 'yearly' },
+      experience: { min: 3, max: 7 },
+      education: 'B.Tech / MBA Operations',
+      postedBy: hrUser2._id,
+      category: 'operations',
+      status: 'active',
+      openings: 1,
+      responsibilities: [
+        'Streamline operational workflows and cross-department collaboration',
+        'Negotiate contracts and oversee vendor management',
+        'Monitor operational KPIs and drive continuous improvement'
+      ],
+      benefits: ['Stock Options', 'Flexible Work Policy', 'Health Cover'],
+      views: 78,
+      applicationCount: 0
+    },
+    // Sales
+    {
+      title: 'Business Development Manager',
+      company: 'StartupXYZ',
+      description: 'Drive high-growth enterprise sales and client partnerships. As a BDM at StartupXYZ, you will identify growth opportunities, build sales pipelines, present proposals, and close high-value client deals.',
+      skills: ['sales', 'business development', 'b2b sales', 'lead generation', 'negotiation', 'crm'],
+      location: 'Delhi NCR',
+      jobType: 'full-time',
+      salary: { min: 1000000, max: 1800000, currency: 'INR', period: 'yearly' },
+      experience: { min: 3, max: 6 },
+      education: 'Any Graduate / MBA Sales',
+      postedBy: hrUser2._id,
+      category: 'sales',
+      status: 'active',
+      openings: 3,
+      responsibilities: [
+        'Build and maintain strong sales pipeline across B2B channels',
+        'Pitch software solutions to CXOs and key decision makers',
+        'Meet quarterly revenue targets'
+      ],
+      benefits: ['Uncapped Commissions', 'Travel Allowance', 'Health Insurance'],
+      views: 110,
+      applicationCount: 0
+    },
+    // Other
+    {
+      title: 'Technical Writer',
+      company: 'TechCorp India',
+      description: 'Looking for a Technical Writer to craft clear API documentation, developer guides, and user manuals for our cloud products.',
+      skills: ['technical writing', 'documentation', 'api documentation', 'markdown', 'git'],
+      location: 'Remote',
+      jobType: 'contract',
+      salary: { min: 600000, max: 1000000, currency: 'INR', period: 'yearly' },
+      experience: { min: 1, max: 4 },
+      education: 'BA English / B.Tech / Communication',
+      postedBy: hrUser._id,
+      category: 'other',
+      status: 'active',
+      openings: 1,
+      responsibilities: [
+        'Create technical documentation for APIs and SDKs',
+        'Collaborate with product engineers to update user guides'
+      ],
+      benefits: ['100% Remote', 'Flexible Schedule'],
+      views: 52,
       applicationCount: 0
     }
   ]);

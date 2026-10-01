@@ -321,10 +321,10 @@ async function loadJobs(page = 1) {
   params.append('limit', 10);
 
   const jobTypes = [...document.querySelectorAll('input[name="jobType"]:checked')].map(i => i.value);
-  if (jobTypes.length === 1) params.append('jobType', jobTypes[0]);
+  if (jobTypes.length > 0) params.append('jobType', jobTypes.join(','));
 
   const categories = [...document.querySelectorAll('input[name="category"]:checked')].map(i => i.value);
-  if (categories.length === 1) params.append('category', categories[0]);
+  if (categories.length > 0) params.append('category', categories.join(','));
 
   try {
     const data = await API.get(`/jobs?${params.toString()}`);

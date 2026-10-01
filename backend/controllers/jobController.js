@@ -25,14 +25,16 @@ exports.getJobs = async (req, res) => {
       query.location = new RegExp(req.query.location, 'i');
     }
 
-    // Filter by job type
+    // Filter by job type (support comma-separated)
     if (req.query.jobType) {
-      query.jobType = req.query.jobType;
+      const types = req.query.jobType.split(',').map(t => t.trim());
+      query.jobType = types.length > 1 ? { $in: types } : types[0];
     }
 
-    // Filter by category
+    // Filter by category (support comma-separated)
     if (req.query.category) {
-      query.category = req.query.category;
+      const cats = req.query.category.split(',').map(c => c.trim());
+      query.category = cats.length > 1 ? { $in: cats } : cats[0];
     }
 
     // Filter by skills (comma-separated)

@@ -2,7 +2,9 @@
 // Shared utilities, API helpers, auth, and global functionality
 
 // ─── API Base URL ────────────────────────────────────────────────────────────
-const API_URL = 'http://localhost:5000/api';
+const API_URL = (typeof window !== 'undefined' && window.location.origin && window.location.origin.startsWith('http'))
+  ? `${window.location.origin}/api`
+  : 'http://localhost:5000/api';
 
 // ─── Auth Helpers ─────────────────────────────────────────────────────────────
 const Auth = {

@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
@@ -26,19 +27,45 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files (frontend)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// ─── Health Check ───────────────────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    success: databaseReady,
+    database: databaseReady ? 'connected' : 'disconnected',
+    message: databaseReady ? 'Recruitment API is running!' : 'Recruitment API is running, but MongoDB is unavailable.',
+    timestamp: new Date()
+  });
+});
+
+// Avoid long Mongoose buffer waits when the database is unavailable.
+app.use('/api', (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database unavailable. Start MongoDB and try again.'
+    });
+  }
+  next();
+});
+
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/applications', require('./routes/applications'));
 
-// ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'Recruitment API is running!', timestamp: new Date() });
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, message: 'API route not found.' });
 });
 
-// ─── Serve Frontend (catch-all for SPA routing) ───────────────────────────────
+// ─── Serve Frontend (catch-all for SPA / HTML page routing) ───────────────────
+const fs = require('fs');
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
+    const pagePath = path.join(__dirname, '../frontend', `${req.path}.html`);
+    if (fs.existsSync(pagePath)) {
+      return res.sendFile(pagePath);
+    }
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
   }
 });

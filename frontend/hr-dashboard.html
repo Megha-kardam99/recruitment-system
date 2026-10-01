@@ -534,6 +534,8 @@ function filterMyJobs(status, btn) {
 
 function populateJobFilter() {
   const sel = document.getElementById('filterJobSelect');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">All Jobs</option>';
   myJobs.forEach(j => {
     const opt = document.createElement('option');
     opt.value = j._id;
@@ -549,7 +551,11 @@ async function viewApplicants(jobId) {
 }
 
 async function loadApplicants() {
-  const jobId = document.getElementById('filterJobSelect').value;
+  let jobId = document.getElementById('filterJobSelect').value;
+  if (!jobId && myJobs.length > 0) {
+    jobId = myJobs[0]._id;
+    document.getElementById('filterJobSelect').value = jobId;
+  }
   const skill = document.getElementById('filterSkill').value.trim();
   const status = document.getElementById('filterStatus').value;
   const container = document.getElementById('applicantsList');
@@ -557,8 +563,9 @@ async function loadApplicants() {
   if (!jobId) {
     container.innerHTML = `<div class="empty-state">
       <div class="empty-state-icon">👥</div>
-      <h3>Select a job to view applicants</h3>
-      <p>Choose a job from the dropdown above</p>
+      <h3>No jobs posted yet</h3>
+      <p>Post a job first to start receiving applications</p>
+      <button class="btn btn-primary mt-2" onclick="showTab('post-job')">Post a Job</button>
     </div>`;
     return;
   }
@@ -650,10 +657,17 @@ function renderApplicantCard(app) {
 }
 
 // ─── Post Job ─────────────────────────────────────────────────────────────────
-jSkillsManager = null;
-document.addEventListener('DOMContentLoaded', () => {
-  jSkillsManager = initSkillsInput('jSkillInput', 'jSkillsContainer');
-});
+let jSkillsManager = null;
+function initJSkillsManager() {
+  if (!jSkillsManager && document.getElementById('jSkillInput')) {
+    jSkillsManager = initSkillsInput('jSkillInput', 'jSkillsContainer');
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initJSkillsManager);
+} else {
+  initJSkillsManager();
+}
 
 async function postJob(status = 'active') {
   const alertEl = document.getElementById('postJobAlert');
@@ -816,6 +830,7 @@ function showTab(tabId, clickedLink) {
   const tab = document.getElementById(`tab-${tabId}`);
   if (tab) tab.classList.add('active');
   if (clickedLink) clickedLink.classList.add('active');
+  if (tabId === 'applicants') loadApplicants();
   return false;
 }
 
@@ -828,11 +843,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   });
 });
 
-// Init skills manager after DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  jSkillsManager = initSkillsInput('jSkillInput', 'jSkillsContainer');
-});
-
+initJSkillsManager();
 init();
 injectFooter();
 </script>
